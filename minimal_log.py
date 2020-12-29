@@ -4,14 +4,18 @@ import pathlib2
 
 
 class MinimalLog:
-    def __init__(self, logger_name=__name__):
+    def __init__(self, logger_name=None):
+        self.INFO, self.DEBUG, self.WARN, self.WARNING = logging.INFO, \
+                                                         logging.DEBUG, \
+                                                         logging.WARN, \
+                                                         logging.WARNING
         try:
             if logger_name:
                 self.logger = logging.getLogger(logger_name)  # get logger
             else:
                 self.logger = logging.getLogger()  # get the root logger
-            self.log_format, self.time_format = self.get_format_strings()
-            self.configure()
+            self.log_format, self.time_format = self.get_format_strings()  # time_format not used yet
+            self.configure(overwrite=False)
             pass
         except RuntimeError:
             raise RuntimeError
@@ -21,11 +25,16 @@ class MinimalLog:
         log_files = MinimalLog.find_all_files_with_extension('.log')
         MinimalLog.delete_list_of_files(log_files)
 
-    def configure(self):
+    def configure(self, overwrite=True):
+        if overwrite:
+            filemode = self.get_log_filemode_overwrite()
+        else:
+            filemode = self.get_log_filemode_append()
         try:
             logging.basicConfig(filename=self.get_log_filename(),
-                                filemode=self.get_log_filemode_overwrite(),
-                                level=self.get_default_level())
+                                filemode=filemode,
+                                level=self.get_default_level(),
+                                format=self.log_format)
         except RuntimeError:
             raise RuntimeError
 
@@ -53,11 +62,13 @@ class MinimalLog:
     def get_format_strings(self):
         return self.get_format_string_for_log(), self.get_format_string_for_time()
 
-    def get_format_string_for_log(self):
+    @staticmethod
+    def get_format_string_for_log():
         # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
-        return "%(asctime)s : %(name)s : %(levelname)s in %(filename)s from %(funcName)s : %(message)s"
-        
-    def get_format_string_for_time(self):
+        return "%(asctime)s : %(levelname)s : %(name)s : %(message)s"
+
+    @staticmethod
+    def get_format_string_for_time():
         # reference : https://docs.python.org/3/library/time.html#time.strftime
         return "%Y-%m-%d, %H:%M:%S"
 
@@ -73,30 +84,35 @@ class MinimalLog:
     def get_log_filename() -> str:
         return "event.log"
 
-    def log_debug_event(self, msg):
+    def log_event(self, event, event_completed=None, level=logging.INFO):
+        if not self.string_is_valid(event):
+            try:
+                event = str(event)
+            except TypeError:
+                raise TypeError
+        if event_completed is True:
+            event = 'success : ' + event
+        elif event_completed is False:
+            event = 'attempt : ' + event
         try:
-            self.logger.log(level=logging.DEBUG, msg=msg)
-        except RuntimeError:
-            raise RuntimeError
-
-    def log_info_event(self, msg):
-        try:
-            self.logger.log(level=logging.INFO, msg=msg)
-        except RuntimeError:
-            raise RuntimeError
-
-    def log_warning_event(self, msg):
-        try:
-            self.logger.log(level=logging.WARN, msg=msg)
+            self.logger.log(level=level, msg=event)
         except RuntimeError:
             raise RuntimeError
 
     def self_test(self):
-        for count in range(3):
-            self.log_info_event("running self test, counting to 2 : " + str(count))
+        count_to = 5
+        for count in range(count_to):
+            self.log_event("self_test counting to " + str(count_to - 1) + " : " + str(count))
+
+    @staticmethod
+    def string_is_valid(string_to_check):
+        if isinstance(string_to_check, str):
+            return True
+        return False
 
 
 if __name__ == '__main__':
     MinimalLog.clean_up()
     sl = MinimalLog()
     sl.self_test()
+    MinimalLog.clean_up()
