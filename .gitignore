@@ -6,4 +6,5 @@
 
 # folders to ignore
 .idea/
+__pycache__/
 venv*/
