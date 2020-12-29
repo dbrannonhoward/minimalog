@@ -4,14 +4,14 @@ import pathlib2
 
 
 class MinimalLog:
-    def __init__(self, logger_name=__name__):
+    def __init__(self, logger_name=None):
         try:
             if logger_name:
                 self.logger = logging.getLogger(logger_name)  # get logger
             else:
                 self.logger = logging.getLogger()  # get the root logger
-            self.log_format, self.time_format = self.get_format_strings()
-            self.configure()
+            self.log_format, self.time_format = self.get_format_strings()  # time_format not used yet
+            self.configure(overwrite=False)
             pass
         except RuntimeError:
             raise RuntimeError
@@ -21,11 +21,16 @@ class MinimalLog:
         log_files = MinimalLog.find_all_files_with_extension('.log')
         MinimalLog.delete_list_of_files(log_files)
 
-    def configure(self):
+    def configure(self, overwrite=True):
+        if overwrite:
+            filemode = self.get_log_filemode_overwrite()
+        else:
+            filemode = self.get_log_filemode_append()
         try:
             logging.basicConfig(filename=self.get_log_filename(),
-                                filemode=self.get_log_filemode_overwrite(),
-                                level=self.get_default_level())
+                                filemode=filemode,
+                                level=self.get_default_level(),
+                                format=self.log_format)
         except RuntimeError:
             raise RuntimeError
 
@@ -53,11 +58,13 @@ class MinimalLog:
     def get_format_strings(self):
         return self.get_format_string_for_log(), self.get_format_string_for_time()
 
-    def get_format_string_for_log(self):
+    @staticmethod
+    def get_format_string_for_log():
         # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
-        return "%(asctime)s : %(name)s : %(levelname)s in %(filename)s from %(funcName)s : %(message)s"
-        
-    def get_format_string_for_time(self):
+        return "%(asctime)s : %(levelname)s %(name)s %(funcName)s : %(message)s"
+
+    @staticmethod
+    def get_format_string_for_time():
         # reference : https://docs.python.org/3/library/time.html#time.strftime
         return "%Y-%m-%d, %H:%M:%S"
 
@@ -92,8 +99,9 @@ class MinimalLog:
             raise RuntimeError
 
     def self_test(self):
-        for count in range(3):
-            self.log_info_event("running self test, counting to 2 : " + str(count))
+        count_to = 5
+        for count in range(count_to):
+            self.log_info_event("self_test counting to " + str(count_to) + " : " + str(count))
 
 
 if __name__ == '__main__':
