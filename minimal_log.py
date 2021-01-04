@@ -1,10 +1,11 @@
+from data_src.CONSTANTS import ANNOUNCE
 import logging
 import os
 import pathlib2
 
 
 class MinimalLog:
-    def __init__(self, logger_name=None):
+    def __init__(self, logger_name=None, debug=False):
         self.INFO, self.DEBUG, self.WARN, self.WARNING = logging.INFO, \
                                                          logging.DEBUG, \
                                                          logging.WARN, \
@@ -16,7 +17,8 @@ class MinimalLog:
                 self.logger = logging.getLogger()  # get the root logger
             self.log_format, self.time_format = self.get_format_strings()  # time_format not used yet
             self.configure(overwrite=False)
-            pass
+            if debug:
+                self._debug()
         except RuntimeError:
             raise RuntimeError
 
@@ -84,7 +86,7 @@ class MinimalLog:
     def get_log_filename() -> str:
         return "event.log"
 
-    def log_event(self, event, event_completed=None, level=logging.INFO):
+    def log_event(self, event, event_completed=None, level=logging.INFO, announce=False):
         if not self.string_is_valid(event):
             try:
                 event = str(event)
@@ -95,14 +97,11 @@ class MinimalLog:
         elif event_completed is False:
             event = 'attempt : ' + event
         try:
+            if announce:
+                event = ANNOUNCE(event)
             self.logger.log(level=level, msg=event)
         except RuntimeError:
             raise RuntimeError
-
-    def self_test(self):
-        count_to = 5
-        for count in range(count_to):
-            self.log_event("self_test counting to " + str(count_to - 1) + " : " + str(count))
 
     @staticmethod
     def string_is_valid(string_to_check):
@@ -110,9 +109,15 @@ class MinimalLog:
             return True
         return False
 
+    def _debug(self):
+        for i in range(9):
+            if i == 0:
+                self.log_event(event='opening announcement test', event_completed=False, announce=True)
+            elif i == 8:
+                self.log_event(event='closing announcement test', event_completed=True, announce=True)
+            else:
+                self.log_event(event='did thing {}'.format(i))
+
 
 if __name__ == '__main__':
-    MinimalLog.clean_up()
-    sl = MinimalLog()
-    sl.self_test()
-    MinimalLog.clean_up()
+    sl = MinimalLog(debug=True)
