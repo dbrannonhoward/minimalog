@@ -5,10 +5,11 @@ import pathlib2
 
 class MinimalLog:
     def __init__(self, logger_name=None, debug=False):
-        self.INFO, self.DEBUG, self.WARN, self.WARNING = logging.INFO, \
-                                                         logging.DEBUG, \
-                                                         logging.WARN, \
-                                                         logging.WARNING
+        self.INFO, self.DEBUG, self.WARN, self.WARNING, self.ERROR = logging.INFO, \
+                                                                     logging.DEBUG, \
+                                                                     logging.WARN, \
+                                                                     logging.WARNING, \
+                                                                     logging.ERROR
         try:
             if logger_name:
                 self.logger = logging.getLogger(logger_name)  # get logger
