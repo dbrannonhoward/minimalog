@@ -2,18 +2,18 @@ import logging
 import os
 import pathlib2
 
+ERROR_LEVELS = (logging.INFO, logging.DEBUG,
+                logging.WARNING, logging.ERROR)
+
 
 class MinimalLog:
     def __init__(self, logger_name=None, debug=False):
-        self.INFO, self.DEBUG, self.WARN, self.WARNING = logging.INFO, \
-                                                         logging.DEBUG, \
-                                                         logging.WARN, \
-                                                         logging.WARNING
+        self.INFO, self.DEBUG, self.WARNING, self.ERROR = ERROR_LEVELS
         try:
             if logger_name:
                 self.logger = logging.getLogger(logger_name)  # get logger
             else:
-                self.logger = logging.getLogger()  # get the root logger
+                self.logger = logging.getLogger()  # get root logger
             self.log_format, self.time_format = self.get_format_strings()  # time_format not used yet
             self.configure(overwrite=False)
             if debug:
@@ -137,7 +137,7 @@ class MinimalLog:
 
 
 if __name__ == '__main__':
-    from data_src.CONSTANTS import ANNOUNCE
+    from data_src.CONSTANTS import *
     sl = MinimalLog(debug=True)
 else:
-    from .data_src.CONSTANTS import ANNOUNCE
+    from .data_src.CONSTANTS import *
