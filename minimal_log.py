@@ -22,6 +22,10 @@ class MinimalLog:
             self.log_exception(r_err)
 
     def clean_up(self):
+        """
+        deletes all files with extension .log in the project directory and below
+        :return: None
+        """
         try:
             log_files = self.find_all_files_with_extension('.log')
             MinimalLog.delete_list_of_files(log_files)
@@ -29,6 +33,10 @@ class MinimalLog:
             self.log_exception(os_err)
 
     def configure(self, overwrite=True):
+        """
+        :param overwrite: determines if existing log files are overwritten, or appended
+        :return: None
+        """
         if overwrite:
             filemode = self.get_log_filemode_overwrite()
         else:
@@ -42,6 +50,10 @@ class MinimalLog:
             self.log_exception(r_err)
 
     def delete_list_of_files(self, files_to_delete: list):
+        """
+        :param files_to_delete: self-documenting
+        :return: None
+        """
         for file in files_to_delete:
             try:
                 os.remove(file)
@@ -49,6 +61,10 @@ class MinimalLog:
                 self.log_exception(o_err)
 
     def find_all_files_with_extension(self, extension='.log') -> list:
+        """
+        :param extension: the file extension to find
+        :return: a list of files with the extension
+        """
         list_of_log_files = list()
         try:
             for root, directories, files in os.walk(os.getcwd()):
@@ -60,38 +76,65 @@ class MinimalLog:
             self.log_exception(o_err)
 
     def get_default_level(self) -> int:
+        """
+        :return: the default logging level, usually INFO
+        """
         try:
             return logging.INFO
         except ValueError as v_err:
             self.log_exception(v_err)
 
     def get_format_strings(self):
+        """
+        basic configuration options
+        :return: a tuple of two configuration strings
+        """
         return self.get_format_string_for_log(), self.get_format_string_for_time()
 
     @staticmethod
     def get_format_string_for_log():
+        """
+        :return: a hardcoded string, in the future this could be re-worked but for now, who cares
+        """
         # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
         return "%(asctime)s : %(levelname)s : %(name)s : %(message)s"
 
     @staticmethod
     def get_format_string_for_time():
+        """
+        :return: a hardcoded string, in the future this could be re-worked but for now, who cares
+        """
         # reference : https://docs.python.org/3/library/time.html#time.strftime
         return "%Y-%m-%d, %H:%M:%S"
 
     @staticmethod
     def get_log_filemode_append() -> str:
+        """
+        :return: a hardcoded string, in the future this could be re-worked but for now, who cares
+        """
         return 'a'
 
     @staticmethod
     def get_log_filemode_overwrite() -> str:
+        """
+        :return: a hardcoded string, in the future this could be re-worked but for now, who cares
+        """
         return 'w'
 
     @staticmethod
     def get_log_filename() -> str:
+        """
+        :return: a hardcoded string, in the future this could be re-worked but for now, who cares
+        """
         return "event.log"
 
     def log_exception(self, exception, level=logging.ERROR):
         # TODO bug, doesn't work, exceptions exit before call
+        """
+        :param exception: the exception from which details are extracted and written to the log file
+        :param level: manual override of the default logging level
+        :return:  None
+        """
         try:
             self.logger.exception(msg=str(exception), level=level)
         except OSError as o_err:
@@ -99,6 +142,13 @@ class MinimalLog:
 
     def log_event(self, event, event_completed=None, level=logging.INFO,
                   announce=False):
+        """
+        :param event: event string to be logged
+        :param event_completed: whether this is the beginning or end of the event
+        :param level: manual override of the default logging level
+        :param announce: bool, create a visible distinction in the log file
+        :return: None
+        """
         if not self.string_is_valid(event):
             try:
                 event = str(event)
@@ -118,6 +168,10 @@ class MinimalLog:
             self.log_exception(r_err)
 
     def string_is_valid(self, string_to_check):
+        """
+        :param string_to_check: self documenting
+        :return: bool, valid string or not
+        """
         try:
             if isinstance(string_to_check, str):
                 return True
@@ -126,6 +180,10 @@ class MinimalLog:
             self.log_exception(t_err)
 
     def __debug(self):
+        """
+        a place to run test code when developing
+        :return: None
+        """
         self.log_event(event='meaningless debug event',
                        event_completed=False,
                        announce=True)
