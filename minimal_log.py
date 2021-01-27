@@ -160,8 +160,10 @@ class MinimalLog:
         try:
             if announce:
                 self.logger.log(level=level, msg=ANNOUNCE(event))
+                print(ANNOUNCE(event))
                 return
             self.logger.log(level=level, msg=event)
+            print(event)
             return
         except RuntimeError as r_err:
             self.log_exception(r_err)
