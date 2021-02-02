@@ -1,6 +1,8 @@
+import inspect
 import logging
 import os
 import pathlib2
+import sys
 
 ERROR_LEVELS = (logging.INFO, logging.DEBUG,
                 logging.WARNING, logging.ERROR)
@@ -96,7 +98,7 @@ class MinimalLog:
         :return: a hardcoded string, in the future this could be re-worked but for now, who cares
         """
         # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
-        return "%(asctime)s : %(levelname)s : %(name)s : %(message)s"
+        return "PID : %(process)d : %(asctime)s : %(name)s : %(levelname)s : %(funcName)s : %(lineno)d : %(message)s"
 
     @staticmethod
     def get_format_string_for_time():
@@ -141,6 +143,8 @@ class MinimalLog:
 
     def log_event(self, event, event_completed=None, level=logging.INFO,
                   announce=False):
+        # TODO bug.. no matter where this function is located it always says it's own name for %(funcName)s in log..
+        # TODO ..file. should fix that, would make debugging easier if it called the name of the function calling it
         """
         :param event: event string to be logged
         :param event_completed: whether this is the beginning or end of the event
@@ -148,6 +152,14 @@ class MinimalLog:
         :param announce: bool, create a visible distinction in the log file
         :return: None
         """
+        function_name_index = 3
+        stack = _get_stack()
+        stack_depth = _get_stack_depth(stack)
+        function_stack = list()
+        for stack_index in range(stack_depth):
+            function_stack.append(_get_stack()[stack_index][function_name_index])
+        f_name = stack[0][function_name_index]
+        # TODO still don't have calling function.. see BUG details above..
         if not self.string_is_valid(event):
             try:
                 event = str(event)
@@ -166,7 +178,7 @@ class MinimalLog:
             print(event)
             return
         except RuntimeError as r_err:
-            self.log_exception(r_err)
+            print(r_err)
 
     def string_is_valid(self, string_to_check):
         """
@@ -189,6 +201,25 @@ class MinimalLog:
         for i in range(9):
             self.log_event(event='intermediate event number {}'.format(i))
         self.log_event(event='meaningless debug event', event_completed=True, announce=True)
+
+
+def _get_stack() -> inspect.stack:
+    try:
+        stack = inspect.stack()
+        return stack
+    except Exception as e_err:
+        print(e_err)
+
+
+def _get_stack_depth(stack) -> int:
+    try:
+        assert stack, 'assertion failed, stack has no value'
+        stack_depth_count = 0
+        for _ in stack:
+            stack_depth_count += 1
+        return stack_depth_count
+    except Exception as e_err:
+        print(e_err)
 
 
 if __name__ == '__main__':
