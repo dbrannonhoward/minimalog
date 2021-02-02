@@ -181,12 +181,15 @@ class MinimalLog:
             events_to_log[index] = event
 
         try:
-            for event in events_to_log:
+            for index, event in enumerate(events_to_log):
                 if announce:
                     self.logger.log(level=level, msg=ANNOUNCE(event))
                     print(ANNOUNCE(event))
+                    if events_to_log[-1] == event:
+                        return
                 self.logger.log(level=level, msg=event)
                 print(event)
+                return
         except Exception as e_err:
             print(e_err)
 
