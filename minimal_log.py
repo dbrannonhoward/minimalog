@@ -145,7 +145,7 @@ class MinimalLog:
                   event_completed=None,
                   level=logging.INFO,
                   announce=False,
-                  log_call_stack=False):
+                  dump_call_stack=False):
         # TODO bug.. no matter where this function is located it always says it's own name for %(funcName)s in log..
         # TODO ..file. should fix that, would make debugging easier if it called the name of the function calling it
         """
@@ -153,34 +153,49 @@ class MinimalLog:
         :param event_completed: whether this is the beginning or end of the event
         :param level: manual override of the default logging level
         :param announce: bool, create a visible distinction in the log file
-        :param log_call_stack: bool, set to True for more spam about function calls
+        :param dump_call_stack: bool, set to True for more spam about function calls
         :return: None
         """
-        if not _string_is_valid(event):
-            try:
-                event = str(event)
-            except Exception as e_err:
-                print(e_err)
-
-        events_to_log = [event]
-        if log_call_stack:
-            function_names_in_call_stack = _get_function_names_in_call_stack()
-            stack_call_string = ''
-            for function_name in function_names_in_call_stack:
-                if stack_call_string == '':
-                    stack_call_string = function_name
-                    continue
-                stack_call_string += ' < ' + function_name
-            events_to_log.append(stack_call_string)
-
-        for index, event in enumerate(events_to_log):
-            if event_completed is True:
-                event = 'success : ' + event
-            elif event_completed is False:
-                event = 'attempt : ' + event
-            events_to_log[index] = event
-
         try:
+            if not _string_is_valid(event):
+                try:
+                    event = str(event)
+                except Exception as e_err:
+                    print(e_err)
+
+            events_to_log = [event]
+
+            if dump_call_stack:
+                function_names_in_call_stack = _get_function_names_in_call_stack()
+                stack_call_string = ''
+                delimiter = ' > '
+                for function_name in function_names_in_call_stack:
+                    if stack_call_string == '':
+                        stack_call_string = function_name  # build root of string
+                        continue
+                    stack_call_string += delimiter + function_name  # append onto string
+
+                # sort the built string
+                stack_call_string = _reverse_order_delimited_by_(stack_call_string, delimiter)
+                events_to_log.append(stack_call_string)
+                call_stack_above_logger = _get_call_stack_above_logger(function_names_in_call_stack)
+                call_stack_above_logger.reverse()  # sort so that the for loop walks "down" the call stack
+                call_stack_log_msg = ''  # start building message here
+                for num, call in enumerate(call_stack_above_logger):
+                    call_stack_log_msg = f'{call_stack_log_msg} \n\t\t\t\t{call_stack_above_logger[num]}'
+                    if not num:  # num == 0
+                        call_stack_log_msg = f'\n\t\tdumping call stack for {call_stack_above_logger[num]}'
+                if announce:
+                    call_stack_log_msg = ANNOUNCE(call_stack_log_msg)
+                events_to_log.append(call_stack_log_msg)
+
+            for index, event in enumerate(events_to_log):
+                if event_completed is True:
+                    event = 'success : ' + event
+                elif event_completed is False:
+                    event = 'attempt : ' + event
+                events_to_log[index] = event
+
             for index, event in enumerate(events_to_log):
                 if announce:
                     self.logger.log(level=level, msg=ANNOUNCE(event))
@@ -189,7 +204,7 @@ class MinimalLog:
                         return
                 self.logger.log(level=level, msg=event)
                 print(event)
-                return
+            return
         except Exception as e_err:
             print(e_err)
 
@@ -200,8 +215,33 @@ class MinimalLog:
         """
         self.log_event(event='meaningless debug event', event_completed=False, announce=True)
         for i in range(9):
-            self.log_event(event='intermediate event number {}'.format(i), log_call_stack=True)
+            self.log_event(event='intermediate event number {}'.format(i), dump_call_stack=True)
         self.log_event(event='meaningless debug event', event_completed=True, announce=True)
+
+
+def _get_call_stack_above_logger(function_names_in_call_stack: list) -> list:
+    try:
+        call_stack_container = list()
+        # create a list of appropriate size to store the call stack
+        # sets 'blank_spaces' count of unused spaces in list as visual delimiter
+        blank_spaces = 1
+        call_stack_container_size = len(function_names_in_call_stack) + blank_spaces
+        # pre-populate list to larger than needed, and allowing negative indices
+        for container_section in range(call_stack_container_size):
+            call_stack_container.append('x')
+        # write the call stack to the list, burying less-relevant calls in negative indices
+        for num, stack_frame_name in enumerate(function_names_in_call_stack):
+            call_stack_container[num-2] = stack_frame_name
+        call_stack_above_logger = list()
+        for num, call_frame_function_name in enumerate(call_stack_container):
+            if not num:
+                continue
+            if call_frame_function_name == 'x':
+                break
+            call_stack_above_logger.append(call_frame_function_name)
+        return call_stack_above_logger
+    except Exception as e_err:
+        print(e_err)
 
 
 def _get_caller_name_from_(frame: FrameInfo) -> str:
@@ -254,7 +294,7 @@ def _is_non_system_(caller_name: str) -> bool:
     :param caller_name: a caller name, can be a function, module, dunder, etc
     :return: bool, True = valid, False = invalid
     """
-    system_calls = [
+    stack_calls_to_filter = [
         '_call_with_frames_removed',
         '_exec',
         'exec_module',
@@ -262,11 +302,11 @@ def _is_non_system_(caller_name: str) -> bool:
         '_find_and_load',
         '_find_and_load_unlocked',
         '_load_unlocked'
-                    ]
+    ]
     try:
         if caller_name is None:  # filter None
             return False
-        if caller_name in system_calls:
+        if caller_name in stack_calls_to_filter:
             return False
         if caller_name.endswith('__') or caller_name.endswith('>'):  # filter dunder, <module>,
             return False
@@ -284,6 +324,22 @@ def _remove_system_frames_from_(stack: inspect.stack) -> list:
             if _is_non_system_(caller_name):
                 non_system_frames.append(frame)
         return non_system_frames
+    except Exception as e_err:
+        print(e_err)
+
+
+def _reverse_order_delimited_by_(stack_call_string, delimiter) -> str:
+    try:
+        reversed_list = list()
+        for num, element in enumerate(stack_call_string.split(delimiter)):
+            reversed_list.append(element)
+        reversed_list.reverse()
+        reversed_list_with_delimiter = list()
+        for num, sorted_element in enumerate(reversed_list):
+            reversed_list_with_delimiter.append(delimiter)
+            reversed_list_with_delimiter.append(sorted_element)
+        sorted_element_string = '.'.join(reversed_list_with_delimiter)
+        return sorted_element_string
     except Exception as e_err:
         print(e_err)
 
