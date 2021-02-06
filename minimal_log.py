@@ -182,6 +182,8 @@ class MinimalLog:
                 call_stack_above_logger.reverse()  # sort so that the for loop walks "down" the call stack
                 call_stack_log_msg = ''  # start building message here
                 for num, call in enumerate(call_stack_above_logger):
+                    if call == 'x':
+                        break  # FIXME does this hide calls 'below' the logger on the stack call list?
                     call_stack_log_msg = f'{call_stack_log_msg} \n\t\t\t\t{call_stack_above_logger[num]}'
                     if not num:  # num == 0
                         call_stack_log_msg = f'\n\t\tdumping call stack for {call_stack_above_logger[num]}'
