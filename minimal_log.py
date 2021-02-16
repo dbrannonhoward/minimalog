@@ -33,7 +33,7 @@ class MinimalLog:
         """
         try:
             log_files = self.find_all_files_with_extension('.log')
-            MinimalLog.delete_list_of_files(log_files)
+            self.delete_list_of_files(log_files)
         except OSError as os_err:
             self.log_exception(os_err)
 
@@ -42,10 +42,9 @@ class MinimalLog:
         :param overwrite: determines if existing log files are overwritten, or appended
         :return: None
         """
+        filemode = self.get_log_filemode_append()
         if overwrite:
             filemode = self.get_log_filemode_overwrite()
-        else:
-            filemode = self.get_log_filemode_append()
         try:
             logging.basicConfig(filename=self.get_log_filename(),
                                 filemode=filemode,
@@ -166,8 +165,10 @@ class MinimalLog:
         try:
             if announce:
                 self.logger.log(level=level, msg=ANNOUNCE(event))
+                print(ANNOUNCE(event))
                 return
             self.logger.log(level=level, msg=event)
+            print(event)
             return
         except RuntimeError as r_err:
             self.log_exception(r_err)
@@ -189,14 +190,10 @@ class MinimalLog:
         a place to run test code when developing
         :return: None
         """
-        self.log_event(event='meaningless debug event',
-                       event_completed=False,
-                       announce=True)
+        self.log_event(event='meaningless debug event', event_completed=False, announce=True)
         for i in range(9):
             self.log_event(event='intermediate event number {}'.format(i))
-        self.log_event(event='meaningless debug event',
-                       event_completed=True,
-                       announce=True)
+        self.log_event(event='meaningless debug event', event_completed=True, announce=True)
 
 
 if __name__ == '__main__':
