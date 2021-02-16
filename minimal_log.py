@@ -1,6 +1,6 @@
 import logging
 import os
-import pathlib2
+import pathlib
 
 ERROR_LEVELS = (logging.INFO, logging.DEBUG,
                 logging.WARNING, logging.ERROR)
@@ -8,6 +8,11 @@ ERROR_LEVELS = (logging.INFO, logging.DEBUG,
 
 class MinimalLog:
     def __init__(self, logger_name=None, debug=False):
+        """
+        class containing the logger and "basic" logging functions
+        :param logger_name:
+        :param debug:
+        """
         self.INFO, self.DEBUG, self.WARNING, self.ERROR = ERROR_LEVELS
         try:
             if logger_name:
@@ -70,7 +75,7 @@ class MinimalLog:
             for root, directories, files in os.walk(os.getcwd()):
                 for file in files:
                     if file.endswith('.log'):
-                        list_of_log_files.append(pathlib2.Path(root, file).absolute())
+                        list_of_log_files.append(pathlib.Path(root, file).absolute())
             return list_of_log_files
         except OSError as o_err:
             self.log_exception(o_err)
