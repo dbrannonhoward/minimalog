@@ -1,7 +1,10 @@
 # minimalog
+### a not very practical logger
 
-i got tired of writing custom loggers every time i made a new project  
-so to understand logging.. i finally sat down, read the api, did testing,  
-and wrote my own logger i can attach to all projects from here on  
+some logging functions i thought might be cool to have.. 
 
-at this time, it is not finished and has plenty of room for improvement
+..so far it has kinda bugged and has been more trouble than
+
+it is worth, but i have learned a lot while making it and it
+
+is cool to see how it is used differently in different programs
