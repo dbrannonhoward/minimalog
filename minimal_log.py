@@ -2,7 +2,7 @@ from inspect import FrameInfo
 import inspect
 import logging
 import os
-import pathlib2
+import pathlib
 
 ERROR_LEVELS = (logging.INFO, logging.DEBUG,
                 logging.WARNING, logging.ERROR)
@@ -71,7 +71,7 @@ class MinimalLog:
             for root, directories, files in os.walk(os.getcwd()):
                 for file in files:
                     if file.endswith('.log'):
-                        list_of_log_files.append(pathlib2.Path(root, file).absolute())
+                        list_of_log_files.append(pathlib.Path(root, file).absolute())
             return list_of_log_files
         except Exception as e_err:
             self.log_exception(e_err, level=self.ERROR)
@@ -164,7 +164,7 @@ class MinimalLog:
                     print(e_err)
 
             events_to_log = [event]
-
+            dump_call_stack = True if level == logging.ERROR else False
             if dump_call_stack:
                 function_names_in_call_stack = _get_function_names_in_call_stack()
                 stack_call_string = ''
