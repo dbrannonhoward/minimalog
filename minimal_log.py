@@ -12,39 +12,85 @@ ERROR_LEVELS = (logging.INFO, logging.DEBUG, logging.WARNING, logging.ERROR)
 class MinimalLog:
     def __init__(self, logger_name=None):
         """:param logger_name: if is None, return root logger, else return logger for module __name__"""
-        event = f'initializing \'{self.__class__.__name__}\''
-        self.INFO, self.DEBUG, self.WARNING, self.ERROR = ERROR_LEVELS
+        self.log_extension = get_log_extension()
+        self.log_format, self.time_format = get_format_strings()  # time_format not used
         try:
-            self.log_extension = 'log'
             self.logger = logging.getLogger() if logger_name is None else logging.getLogger(__name__)
-            self.log_format, self.time_format = get_format_strings()  # time_format not used
-            self.configure()
         except Exception as e_err:
-            print(f'error {event}')
+            print(f'error with logging.getLogger()')
             for arg in e_err.args:
                 print(arg)
+        msg = f'initializing \'{self.__class__.__name__}\''
+        self.INFO, self.DEBUG, self.WARNING, self.ERROR = ERROR_LEVELS
+        try:
+            self._configure_(verbosely=True)  # cannot log before this call
+            self.log(msg, announcement=True, event_completed=False)
+            self.log(msg, announcement=True, event_completed=True)
+            # value = potato
+        except Exception as e_err:
+            self.log(e_err)
 
     @staticmethod
     def clean_up():
         delete_list_of_files(find_log_files())
 
-    def configure(self):
-        filemode = get_log_filemode()
+    def debug(self, msg='') -> None:
         try:
-            logging.basicConfig(filename=get_log_filename(), filemode=filemode,
-                                level=get_default_level(), format=self.log_format)
+            self.logger.debug(msg=msg)
         except Exception as e_err:
             for arg in e_err.args:
                 print(arg)
 
-    def log_event(self, event, event_completed=None, level=logging.INFO, announcement=False,
-                  dump_call_stack=False, call_deprecated=True) -> None:
-        if call_deprecated:
-            _log_event_deprecated(self, event, event_completed, level, announcement, dump_call_stack)
-            return
-        
+    def info(self, msg) -> None:
         try:
-            print(f'TODO new log routine')
+            self.logger.info(msg=msg)
+        except Exception as e_err:
+            for arg in e_err.args:
+                print(arg)
+
+    def log(self, msg, event_completed=None, level=logging.INFO, announcement=False,
+            dump_call_stack=False, call_deprecated=True) -> None:
+        # FIXME delete me before merge
+        # FIXME delete me before merge
+        call_deprecated = False
+        # FIXME delete me before merge
+        # FIXME delete me before merge
+        if call_deprecated:
+            _log_deprecated(self, msg, event_completed, level, announcement, dump_call_stack)
+            return
+        try:
+            if isinstance(msg, Exception):
+                self._log_exception(msg)
+                return
+            _log_deprecated(self, msg, event_completed, level, announcement, dump_call_stack)
+        except Exception as e_err:
+            for arg in e_err.args:
+                print(arg)
+
+    def set_level(self):
+        msg = f'setting level for logger'
+        try:
+            self.log(msg)
+        except Exception as e_err:
+            self.log(e_err)
+
+    def _configure_(self, verbosely=False):
+        filemode = get_log_filemode()
+        try:
+            logging.basicConfig(filename=get_log_filename(), filemode=filemode,
+                                level=get_default_level(), format=self.log_format)
+            if verbosely:
+                self.debug(f'logger propagation set to \'{self.logger.propagate}\'')
+                self.debug(f'logger effective level is \'{self.logger.getEffectiveLevel()}\'')
+        except Exception as e_err:
+            for arg in e_err.args:
+                print(arg)
+
+    def _log_exception(self, exc) -> None:
+        try:
+            exc_type = type(exc)
+            for arg in exc.args:
+                self.log(f'{exc_type} : {arg}')
         except Exception as e_err:
             for arg in e_err.args:
                 print(arg)
@@ -138,6 +184,10 @@ def get_function_names_in_call_stack() -> list:
     return function_names_in_call_stack
 
 
+def get_log_extension() -> str:
+    return "log"
+
+
 def get_log_filemode(append=True) -> str:
     return 'a' if append else 'w'
 
@@ -213,11 +263,11 @@ def valid_string_(test_val) -> bool:
             print(arg)
 
 
-def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=None,
-                          level=logging.INFO, announcement=False,
-                          dump_call_stack=False) -> None:
-    event = event if valid_string_(event) else str(event)
-    events_to_log = [event]
+def _log_deprecated(minimalog: MinimalLog, msg: str, event_completed=None,
+                    level=logging.INFO, announcement=False,
+                    dump_call_stack=False) -> None:
+    msg = msg if valid_string_(msg) else str(msg)
+    events_to_log = [msg]
     dump_call_stack = True if level == logging.ERROR else False
     if dump_call_stack:
         function_names_in_call_stack = get_function_names_in_call_stack()
@@ -242,22 +292,24 @@ def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=Non
         if announcement:
             call_stack_log_msg = announce_(call_stack_log_msg)
         events_to_log.append(call_stack_log_msg)
-    for index, event in enumerate(events_to_log):
-        events_to_log[index] = f'success : {event}' if event_completed else f'attempt {event}'
-    for index, event in enumerate(events_to_log):
+    for index, msg in enumerate(events_to_log):
+        if event_completed is None:
+            continue
+        events_to_log[index] = f'success : {msg}' if event_completed else f'attempt : {msg}'
+    for index, msg in enumerate(events_to_log):
         if announcement:
-            minimalog.logger.log(level=level, msg=announce_(event))
-            print(announce_(event))
-            if events_to_log[-1] == event:
+            minimalog.logger.log(level=level, msg=announce_(msg))
+            print(announce_(msg))
+            if events_to_log[-1] == msg:
                 return
-        minimalog.logger.log(level=level, msg=event)
-        print(event)
+        minimalog.logger.log(level=level, msg=msg)
+        print(msg)
     return
 
 
 if __name__ == '__main__':
     from ascii_art.event_wrappers import *
     sl = MinimalLog()
-    sl.clean_up()
+    # sl.clean_up()
 else:
     from .ascii_art.event_wrappers import *
