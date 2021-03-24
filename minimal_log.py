@@ -37,11 +37,12 @@ class MinimalLog:
             for arg in e_err.args:
                 print(arg)
 
-    def log_event(self, event, event_completed=None, level=logging.INFO, announce_event=False,
+    def log_event(self, event, event_completed=None, level=logging.INFO, announcement=False,
                   dump_call_stack=False, call_deprecated=True) -> None:
         if call_deprecated:
-            _log_event_deprecated(self, event, event_completed, level, announce_event, dump_call_stack)
+            _log_event_deprecated(self, event, event_completed, level, announcement, dump_call_stack)
             return
+        
         try:
             print(f'TODO new log routine')
         except Exception as e_err:
@@ -114,7 +115,7 @@ def get_default_level() -> int:
     return logging.INFO
 
 
-def get_format_string():
+def get_format_string_for_msg():
     # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
     return "%(asctime)s : %(levelname)s : %(module)s : %(funcName)s : %(lineno)d : %(message)s"
 
@@ -125,7 +126,7 @@ def get_format_string_for_time():
 
 
 def get_format_strings():
-    return get_format_string(), get_format_string_for_time()
+    return get_format_string_for_msg(), get_format_string_for_time()
 
 
 def get_function_names_in_call_stack() -> list:
@@ -213,7 +214,7 @@ def valid_string_(test_val) -> bool:
 
 
 def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=None,
-                          level=logging.INFO, announce_event=False,
+                          level=logging.INFO, announcement=False,
                           dump_call_stack=False) -> None:
     event = event if valid_string_(event) else str(event)
     events_to_log = [event]
@@ -238,13 +239,13 @@ def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=Non
             call_stack_log_msg = f'{call_stack_log_msg} \n\t\t\t\t{call_stack_above_logger[num]}'
             if not num:  # num == 0
                 call_stack_log_msg = f'\n\t\tdumping call stack for {call_stack_above_logger[num]}'
-        if announce_event:
+        if announcement:
             call_stack_log_msg = announce_(call_stack_log_msg)
         events_to_log.append(call_stack_log_msg)
     for index, event in enumerate(events_to_log):
         events_to_log[index] = f'success : {event}' if event_completed else f'attempt {event}'
     for index, event in enumerate(events_to_log):
-        if announce_event:
+        if announcement:
             minimalog.logger.log(level=level, msg=announce_(event))
             print(announce_(event))
             if events_to_log[-1] == event:
