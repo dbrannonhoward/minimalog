@@ -12,22 +12,20 @@ ERROR_LEVELS = (logging.INFO, logging.DEBUG, logging.WARNING, logging.ERROR)
 class MinimalLog:
     def __init__(self, logger_name=None):
         """:param logger_name: if is None, return root logger, else return logger for module __name__"""
+        self.INFO, self.DEBUG, self.WARNING, self.ERROR = ERROR_LEVELS
         self.log_extension = get_log_extension()
         self.log_format, self.time_format = get_format_strings()  # time_format not used
         try:
             self.logger = logging.getLogger() if logger_name is None else logging.getLogger(__name__)
-            msg = f'initializing \'{self.__class__.__name__}\'' if logger_name is None \
-                else f'initializing \'{self.__class__.__name__}\' at \'{logger_name}\''
         except Exception as e_err:
             print(f'error with logging.getLogger()')
             for arg in e_err.args:
                 print(arg)
-        self.INFO, self.DEBUG, self.WARNING, self.ERROR = ERROR_LEVELS
+        msg = f'initializing \'{self.__class__.__name__}\'' if logger_name is None \
+            else f'initializing \'{self.__class__.__name__}\' at \'{logger_name}\''
         try:
             self._configure_(verbosely=True)  # cannot log before this call
-            self.log(msg, announcement=True, event_completed=False)
-            self.log(msg, announcement=True, event_completed=True)
-            # value = potato
+            self.log(msg)
         except Exception as e_err:
             self.log(e_err)
 
