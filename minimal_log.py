@@ -103,7 +103,7 @@ class MinimalLog:
         :return: a hardcoded string, in the future this could be re-worked but for now, who cares
         """
         # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
-        return "PID : %(process)d : %(asctime)s : %(name)s : %(levelname)s : %(funcName)s : %(lineno)d : %(message)s"
+        return "%(asctime)s : %(levelname)s : %(module)s : %(funcName)s : %(lineno)d : %(message)s"
 
     @staticmethod
     def get_format_string_for_time():
@@ -188,7 +188,7 @@ class MinimalLog:
                 call_stack_log_msg = ''  # start building message here
                 for num, call in enumerate(call_stack_above_logger):
                     if call == 'x':
-                        break  # FIXME does this hide calls 'below' the logger on the stack call list?
+                        break  # TODO does this hide calls 'below' the logger on the stack call list?
                     call_stack_log_msg = f'{call_stack_log_msg} \n\t\t\t\t{call_stack_above_logger[num]}'
                     if not num:  # num == 0
                         call_stack_log_msg = f'\n\t\tdumping call stack for {call_stack_above_logger[num]}'
@@ -214,16 +214,6 @@ class MinimalLog:
             return
         except Exception as e_err:
             print(e_err)
-
-    def __debug(self):
-        """
-        a place to run test code when developing
-        :return: None
-        """
-        self.log_event(event='meaningless debug event', event_completed=False, announce=True)
-        for i in range(9):
-            self.log_event(event='intermediate event number {}'.format(i), dump_call_stack=True)
-        self.log_event(event='meaningless debug event', event_completed=True, announce=True)
 
 
 def _get_call_stack_above_logger(function_names_in_call_stack: list) -> list:
@@ -362,6 +352,17 @@ def _string_is_valid(string_to_check):
         return False
     except Exception as e_err:
         print(e_err)
+
+
+def __debug(self):
+    """
+    a place to run test code when developing
+    :return: None
+    """
+    self.log_event(event='meaningless debug event', event_completed=False, announce=True)
+    for i in range(9):
+        self.log_event(event='intermediate event number {}'.format(i), dump_call_stack=True)
+    self.log_event(event='meaningless debug event', event_completed=True, announce=True)
 
 
 if __name__ == '__main__':
