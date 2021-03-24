@@ -256,8 +256,8 @@ def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=Non
 
 
 if __name__ == '__main__':
-    from data_src.CONSTANTS import *
+    from ascii_art.event_wrappers import *
     sl = MinimalLog()
     sl.clean_up()
 else:
-    from .data_src.CONSTANTS import *
+    from .ascii_art.event_wrappers import *
