@@ -1,1 +1,2 @@
-print('importing {}'.format(__name__))
+print(f'importing {__name__}')
+

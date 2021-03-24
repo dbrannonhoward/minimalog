@@ -1,4 +1,4 @@
 from minimalog.minimal_log import MinimalLog
 ml = MinimalLog(__name__)
 event = f'\n\nimporting {__name__}'
-ml.log_event(event)
+ml._log_event_deprecated(event)
