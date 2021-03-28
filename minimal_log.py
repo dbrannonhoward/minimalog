@@ -242,7 +242,9 @@ def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=Non
             call_stack_log_msg = announce_(call_stack_log_msg)
         events_to_log.append(call_stack_log_msg)
     for index, event in enumerate(events_to_log):
-        events_to_log[index] = f'success : {event}' if event_completed else f'attempt {event}'
+        events_to_log[index] = f'success : {event}' if event_completed else f'attempt : {event}'
+        if event_completed is None:
+            events_to_log[index] = event
     for index, event in enumerate(events_to_log):
         if announcement:
             minimalog.logger.log(level=level, msg=announce_(event))
