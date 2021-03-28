@@ -37,12 +37,11 @@ class MinimalLog:
             for arg in e_err.args:
                 print(arg)
 
-    def log_event(self, event, event_completed=None, level=logging.INFO, announcement=False,
-                  dump_call_stack=False, call_deprecated=True) -> None:
+    def log(self, event, event_completed=None, level=logging.INFO, announcement=False,
+            dump_call_stack=False, call_deprecated=True) -> None:
         if call_deprecated:
             _log_event_deprecated(self, event, event_completed, level, announcement, dump_call_stack)
             return
-        
         try:
             print(f'TODO new log routine')
         except Exception as e_err:
