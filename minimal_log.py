@@ -116,7 +116,7 @@ def get_default_level() -> int:
 
 def get_format_string_for_msg():
     # reference : https://docs.python.org/3/library/logging.html#logrecord-attributes
-    return "%(asctime)s : %(levelname)s : %(module)s : %(funcName)s : %(lineno)d : %(message)s"
+    return "%(asctime)s : %(levelname)s : %(module)s : %(lineno)d : %(funcName)s : %(message)s"
 
 
 def get_format_string_for_time():
