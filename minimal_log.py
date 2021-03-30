@@ -246,12 +246,10 @@ def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=Non
         if event_completed is None:
             events_to_log[index] = event
     for index, event in enumerate(events_to_log):
-        if announcement:
-            minimalog.logger.log(level=level, msg=announce_(event))
-            print(announce_(event))
-            if events_to_log[-1] == event:
-                return
-        minimalog.logger.log(level=level, msg=event)
+        event = announce_(event) if announcement else event
+        # if events_to_log[-1] == event:
+        #     return  # TODO this is here for stack dumping?
+        minimalog.logger.log(level=level, msg=event, stacklevel=3)
         print(event)
     return
 
