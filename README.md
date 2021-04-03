@@ -1,10 +1,17 @@
 # minimalog
-### a not very practical logger
+### the unpractical logger
 
-some logging functions i thought might be cool to have.. 
+logging is important, but requires a bit of setup on new projects.  
+therefore instead of re-configuring a new logger everytime i start  
+something new, i have decided to centralize it in this project  
 
-..so far it has kinda bugged and has been more trouble than
+pros  
+0. plug-and-play logging for my projects with my paradigms in place  
+1. gives me a sandbox to experiment with logging  
+2. has taught me some lessons about project dependencies..  
 
-it is worth, but i have learned a lot while making it and it
+cons  
+0. buggy and incomplete  
+1. isn't very good  
+2. has taught me some lessons about project dependencies..  
 
-is cool to see how it is used differently in different programs
