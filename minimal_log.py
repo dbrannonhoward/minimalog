@@ -37,10 +37,10 @@ class MinimalLog:
             for arg in e_err.args:
                 print(arg)
 
-    def log(self, event, event_completed=None, level=logging.INFO, announcement=False,
-            dump_call_stack=False, call_deprecated=True) -> None:
+    def log(self, event, event_completed=None, level=logging.INFO,
+            announcement=False, call_deprecated=True) -> None:
         if call_deprecated:
-            _log_event_deprecated(self, event, event_completed, level, announcement, dump_call_stack)
+            _log_event_deprecated(self, event, event_completed, level, announcement)
             return
         try:
             print(f'TODO new log routine')
@@ -213,8 +213,7 @@ def valid_string_(test_val) -> bool:
 
 
 def _log_event_deprecated(minimalog: MinimalLog, event: str, event_completed=None,
-                          level=logging.INFO, announcement=False,
-                          dump_call_stack=False) -> None:
+                          level=logging.INFO, announcement=False) -> None:
     event = event if valid_string_(event) else str(event)
     events_to_log = [event]
     dump_call_stack = True if level == logging.ERROR else False
